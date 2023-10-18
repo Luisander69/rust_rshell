@@ -1,6 +1,6 @@
 use std::net::{Ipv4Addr, SocketAddrV4, TcpListener, TcpStream, Shutdown};
 use std::process::{Command, exit,};
-use std::io{self, Write, BufReader};
+use std::io::{self, Write, BufReader, BufRead};
 
 fn main() {
     let bind_ip = "127.1.1.0";
@@ -16,13 +16,17 @@ fn main() {
         exit(0);
     }
    let cs = SocketAddrV4::new(ipaddress, bind_port);
-   let listen = TcpListener.bind(cs);
+   let listen = TcpListener::bind(cs);
    let listener = match listen{
        Ok(l) => l,
        Err(e) => {println!("{}", e); exit(0)}
    };
+
+    println!("Binded to {}:{}", cs.ip(), cs.port());
+
+
    let (mut clientsocket, clientaddress) = listener.accept().unwrap();
-   println!(Client connected from: "{}", clientaddress);
+   println!("Client connected from: {}", clientaddress);
    loop{
        println!("Enter command to send: ");
        let mut input = String::new();
@@ -32,12 +36,12 @@ fn main() {
        let mut buffer:Vec<u8> = Vec::new();
        let mut reader = BufReader::new(&clientsocket);
        reader.read_until(b'\0', &mut buffer);
-
+       println!("Received: {}", String::from_utf8_lossy(&buffer).trim());
 
 
    }
-
-
+   println!("shutting down the client: {}", clientaddress);
+   clientsocket.shutdown(Shutdown::Both);
 
    drop(listener);
 }
